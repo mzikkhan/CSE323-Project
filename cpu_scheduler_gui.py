@@ -2,7 +2,7 @@
 import tkinter as tk
 from process import Process
 from scheduler import ProcessScheduler
-import sys
+import sys, os
 
 class Application(tk.Frame):
     # Initializing our Application
@@ -72,12 +72,20 @@ class Application(tk.Frame):
         self.srtf_button = tk.Button(self, text="PS with RR", command=self.run_ps_rr)
         self.srtf_button.pack(side="right")
 
+        self.refresh_button = tk.Button(self, text="Refresh", command=self.refresh_app)
+        self.refresh_button.pack()
+
         self.quit = tk.Button(self, text="Quit", fg="red", command=self.master.destroy)
         self.quit.pack()
 
         # Create a text widget to display the output
         self.output_text = tk.Text(self)
         self.output_text.pack()
+
+    # Refreshing the Application
+    def refresh_app(self):
+        python = sys.executable
+        os.execl(python, python, *sys.argv)
 
     # Adding a Process
     def add_process(self):
