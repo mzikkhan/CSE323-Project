@@ -1,5 +1,6 @@
 from tkinter import *
 import time
+import matplotlib.pyplot as plt
 
 class ProcessScheduler:
     def __init__(self, processes, output, count_process):
@@ -24,11 +25,25 @@ class ProcessScheduler:
             self.output.update_idletasks()
 
         # Applying FCFS logic
+        gantt_data = []  # List to store Gantt chart data
         for item in process_queue:
+            if process_queue[item][2] < 0:
+                self.output.insert(END, "{}: Process invalid as negative burst time.".format(item))
+                self.output.insert(END, "\n")
+                self.count_process -= 1
+                continue
+            if process_queue[item][2] == 0:
+                self.output.insert(END, "{}: Process skipped as no burst time.".format(item))
+                self.output.insert(END, "\n")
+                self.count_process -= 1
+                continue
+            # Storing start_time
+            start_time = run_time
             run_time += process_queue[item][2]
             del process_queue_fcfs[item]
             if process_queue_fcfs:
                 wait_time += run_time
+            self.output.insert(END, "{}: started\n".format(item))
             for i in range(10):
                 self.output.insert(END, "[]")
                 self.output.update_idletasks()
@@ -36,12 +51,34 @@ class ProcessScheduler:
             self.output.insert(END, "\n")
             self.output.insert(END, "{}: completed. Time: {}\n".format(item, run_time))
             self.output.update_idletasks()
+            
+            # Store Gantt chart data for the current process
+            gantt_data.append((item, start_time, run_time - start_time))
 
         # Calculate and print Average Wait Time
         avg_wait = wait_time / self.count_process
         time.sleep(0.3)
+        self.output.insert(END, "\n")
         self.output.insert(END, "Average Waiting Time: {}\n".format(avg_wait))
         self.output.update_idletasks()
+
+        # Create the Gantt chart
+        colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple']
+
+        fig, ax = plt.subplots()
+        for i, (item, start, duration) in enumerate(gantt_data):
+            color = colors[i % len(colors)]  # Cycle through colors using modulo operator
+            ax.broken_barh([(start, duration)], (10, 9), facecolors=(color))
+            ax.text(start + duration/2, 15, item, ha='center', va='center')
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Process')
+        ax.set_title('FCFS Scheduling')
+        ax.set_ylim(5, 25)
+        ax.grid(True)
+
+        plt.show()
+
     
     # Shortest Job First Algorithm
     def sjf(self):
@@ -63,12 +100,27 @@ class ProcessScheduler:
         run_time = 0
         wait_time = 0
 
+        gantt_data = []  # List to store Gantt chart data
+
         # Applying SJF logic
         for item in process_queue_sjf:
+            if process_queue_sjf[item][2] < 0:
+                self.output.insert(END, "{}: Process invalid as negative burst time.".format(item))
+                self.output.insert(END, "\n")
+                self.count_process -= 1
+                continue
+            if process_queue_sjf[item][2] == 0:
+                self.output.insert(END, "{}: Process skipped as no burst time.".format(item))
+                self.output.insert(END, "\n")
+                self.count_process -= 1
+                continue
+            # Storing start_time
+            start_time = run_time
             run_time+=process_queue_sjf[item][2]
             del process_queue_sjf2[item]
             if process_queue_sjf2:
                 wait_time += run_time
+            self.output.insert(END, "{}: started\n".format(item))
             for i in range(10):
                 self.output.insert(END, "[]")
                 self.output.update_idletasks()
@@ -77,11 +129,31 @@ class ProcessScheduler:
             self.output.insert(END, "{}: completed. Time: {}\n".format(item, run_time))
             self.output.update_idletasks()
 
+            # Store Gantt chart data for the current process
+            gantt_data.append((item, start_time, run_time - start_time))
+
         # Calculate and print Average Wait Time
         avg_wait = wait_time / self.count_process
         time.sleep(0.3)
         self.output.insert(END, "Average Waiting Time: {}\n".format(avg_wait))
         self.output.update_idletasks()
+
+        # Create the Gantt chart
+        colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple']
+
+        fig, ax = plt.subplots()
+        for i, (item, start, duration) in enumerate(gantt_data):
+            color = colors[i % len(colors)]  # Cycle through colors using modulo operator
+            ax.broken_barh([(start, duration)], (10, 9), facecolors=(color))
+            ax.text(start + duration/2, 15, item, ha='center', va='center')
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Process')
+        ax.set_title('SJF Scheduling')
+        ax.set_ylim(5, 25)
+        ax.grid(True)
+
+        plt.show()
 
     # Round Robin Algorithm
     def rr(self, quantum):
