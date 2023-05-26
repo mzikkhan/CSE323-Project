@@ -2,6 +2,7 @@ from tkinter import *
 import time
 import matplotlib.pyplot as plt
 
+
 class ProcessScheduler:
     def __init__(self, processes, output, count_process):
         self.processes = processes
@@ -28,12 +29,14 @@ class ProcessScheduler:
         gantt_data = []  # List to store Gantt chart data
         for item in process_queue:
             if process_queue[item][2] < 0:
-                self.output.insert(END, "{}: Process invalid as negative burst time.".format(item))
+                self.output.insert(
+                    END, "{}: Process invalid as negative burst time.".format(item))
                 self.output.insert(END, "\n")
                 self.count_process -= 1
                 continue
             if process_queue[item][2] == 0:
-                self.output.insert(END, "{}: Process skipped as no burst time.".format(item))
+                self.output.insert(
+                    END, "{}: Process skipped as no burst time.".format(item))
                 self.output.insert(END, "\n")
                 self.count_process -= 1
                 continue
@@ -49,9 +52,10 @@ class ProcessScheduler:
                 self.output.update_idletasks()
                 time.sleep(0.3)
             self.output.insert(END, "\n")
-            self.output.insert(END, "{}: completed. Time: {}\n".format(item, run_time))
+            self.output.insert(
+                END, "{}: completed. Time: {}\n".format(item, run_time))
             self.output.update_idletasks()
-            
+
             # Store Gantt chart data for the current process
             gantt_data.append((item, start_time, run_time - start_time))
 
@@ -63,11 +67,13 @@ class ProcessScheduler:
         self.output.update_idletasks()
 
         # Create the Gantt chart
-        colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple']
+        colors = ['tab:blue', 'tab:orange',
+                  'tab:green', 'tab:red', 'tab:purple']
 
         fig, ax = plt.subplots()
         for i, (item, start, duration) in enumerate(gantt_data):
-            color = colors[i % len(colors)]  # Cycle through colors using modulo operator
+            # Cycle through colors using modulo operator
+            color = colors[i % len(colors)]
             ax.broken_barh([(start, duration)], (10, 9), facecolors=(color))
             ax.text(start + duration/2, 15, item, ha='center', va='center')
 
@@ -79,8 +85,8 @@ class ProcessScheduler:
 
         plt.show()
 
-    
     # Shortest Job First Algorithm
+
     def sjf(self):
         self.output.insert(END, "SJF Scheduling:\n")
         process_queue = self.processes
@@ -93,7 +99,8 @@ class ProcessScheduler:
             self.output.update_idletasks()
 
         # Sort queue with respect to burst time
-        process_queue_sjf = dict(sorted(process_queue_sjf.items(), key=lambda x:x[1][2]))
+        process_queue_sjf = dict(
+            sorted(process_queue_sjf.items(), key=lambda x: x[1][2]))
         process_queue_sjf2 = process_queue_sjf.copy()
 
         # To keep track of run time and wait time
@@ -105,18 +112,20 @@ class ProcessScheduler:
         # Applying SJF logic
         for item in process_queue_sjf:
             if process_queue_sjf[item][2] < 0:
-                self.output.insert(END, "{}: Process invalid as negative burst time.".format(item))
+                self.output.insert(
+                    END, "{}: Process invalid as negative burst time.".format(item))
                 self.output.insert(END, "\n")
                 self.count_process -= 1
                 continue
             if process_queue_sjf[item][2] == 0:
-                self.output.insert(END, "{}: Process skipped as no burst time.".format(item))
+                self.output.insert(
+                    END, "{}: Process skipped as no burst time.".format(item))
                 self.output.insert(END, "\n")
                 self.count_process -= 1
                 continue
             # Storing start_time
             start_time = run_time
-            run_time+=process_queue_sjf[item][2]
+            run_time += process_queue_sjf[item][2]
             del process_queue_sjf2[item]
             if process_queue_sjf2:
                 wait_time += run_time
@@ -126,7 +135,8 @@ class ProcessScheduler:
                 self.output.update_idletasks()
                 time.sleep(0.3)
             self.output.insert(END, "\n")
-            self.output.insert(END, "{}: completed. Time: {}\n".format(item, run_time))
+            self.output.insert(
+                END, "{}: completed. Time: {}\n".format(item, run_time))
             self.output.update_idletasks()
 
             # Store Gantt chart data for the current process
@@ -139,11 +149,13 @@ class ProcessScheduler:
         self.output.update_idletasks()
 
         # Create the Gantt chart
-        colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple']
+        colors = ['tab:blue', 'tab:orange',
+                  'tab:green', 'tab:red', 'tab:purple']
 
         fig, ax = plt.subplots()
         for i, (item, start, duration) in enumerate(gantt_data):
-            color = colors[i % len(colors)]  # Cycle through colors using modulo operator
+            # Cycle through colors using modulo operator
+            color = colors[i % len(colors)]
             ax.broken_barh([(start, duration)], (10, 9), facecolors=(color))
             ax.text(start + duration/2, 15, item, ha='center', va='center')
 
@@ -161,6 +173,23 @@ class ProcessScheduler:
         processes = self.processes
         time_quantum = quantum
 
+        # Checking Time quantum
+        if time_quantum <= 0:
+            self.output.insert(
+                END, "Invalid time quantum. Time quantum must be greater than zero. Please REFRESH.")
+            self.output.insert(END, "\n")
+            self.shutdown()
+            return
+
+        # Checking Burst Time
+        for process, value in processes.items():
+            if processes[process][2] <= 0:
+                self.output.insert(
+                    END, "{}: Invalid burst time. Burst time must be greater than 0. Please REFRESH.".format(process))
+                self.output.insert(END, "\n")
+                self.shutdown()
+                return
+
         # Making a copy of our ready queue
         copied_processes = processes.copy()
 
@@ -172,8 +201,15 @@ class ProcessScheduler:
             self.output.insert(END, ".\n")
             self.output.update_idletasks()
 
+        # To keep track of run time and wait time
+        run_time = 0
+
+        gantt_data = []  # List to store Gantt chart data
+
         while True:
             for process, value in processes.items():
+
+                start_time = run_time
                 if process not in copied_processes:
                     continue
                 if ((processes[process][2]) <= time_quantum):
@@ -182,8 +218,16 @@ class ProcessScheduler:
                         self.output.update_idletasks()
                     time.sleep(0.3)
                     self.output.insert(END, "\n")
+
+                    run_time += processes[process][2]
+
+                    # Store Gantt chart data for the current process
+                    gantt_data.append(
+                        (process, start_time, processes[process][2]))
+
                     total_time += processes[process][2]
-                    self.output.insert(END, "{}: completed. Time: {}\n".format(process, total_time))
+                    self.output.insert(
+                        END, "{}: completed. Time: {}\n".format(process, total_time))
                     self.output.update_idletasks()
                     # total_time += processes[process][2]
                     copied_processes.pop(process)
@@ -193,15 +237,24 @@ class ProcessScheduler:
                         self.output.update_idletasks()
                     time.sleep(0.3)
                     self.output.insert(END, "\n")
+
+                    run_time += time_quantum
+
                     total_time += time_quantum
-                    self.output.insert(END, "{}: completed. Time: {}\n".format(process, total_time))
+                    self.output.insert(
+                        END, "{}: completed. Time: {}\n".format(process, total_time))
                     self.output.update_idletasks()
-                    processes[process][2] = processes[process][2] - time_quantum
+                    processes[process][2] = processes[process][2] - \
+                        time_quantum
                     # total_time += 5
                     temporary_dic[process] = value
                     copied_processes.pop(process)
                     copied_processes.update(temporary_dic)
                     temporary_dic.clear()
+
+                    # Store Gantt chart data for the current process
+                    gantt_data.append(
+                        (process, start_time, time_quantum))
 
             if bool(copied_processes) == False:
                 break
@@ -211,14 +264,28 @@ class ProcessScheduler:
         time.sleep(0.3)
         self.output.insert(END, "Average Waiting Time: {}\n".format(avg_wait))
         self.output.update_idletasks()
-        
+
+        # Create the Gantt chart
+        colors = ['tab:blue', 'tab:orange',
+                  'tab:green', 'tab:red', 'tab:purple']
+
+        fig, ax = plt.subplots()
+        for i, (process, start, duration) in enumerate(gantt_data):
+            # Cycle through colors using modulo operator
+            color = colors[i % len(colors)]
+            ax.broken_barh([(start, duration)], (10, 9), facecolors=(color))
+            ax.text(start + duration/2, 15, process, ha='center', va='center')
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Process')
+        ax.set_title('RR Scheduling')
+        ax.set_ylim(5, 25)
+        ax.grid(True)
+
+        plt.show()
+
     # Shortest Remaining Time First Algorithm
     def srtf(self):
-        self.output.insert(END, "SRTF Scheduling:\n")
-        for i in range(5):
-            time.sleep(0.3)
-            self.output.insert(END, ".\n")
-            self.output.update_idletasks()
 
         processes = self.processes
         waiting_queue = {}
@@ -227,9 +294,28 @@ class ProcessScheduler:
         process_with_CPU = {}
         num_items = len(processes)
 
+        # Checking Burst Time
+        for process, value in processes.items():
+            if processes[process][2] <= 0:
+                self.output.insert(
+                    END, "{}: Invalid burst time. Burst time must be greater than 0. Please REFRESH.".format(process))
+                self.output.insert(END, "\n")
+                self.shutdown()
+                return
+
+        self.output.insert(END, "SRTF Scheduling:\n")
+        for i in range(5):
+            time.sleep(0.3)
+            self.output.insert(END, ".\n")
+            self.output.update_idletasks()
+
         # sort process according to arrival time
         processes = dict(sorted(processes.items(), key=lambda x: x[1][1]))
 
+        # To keep track of run time and wait time
+        run_time = 0
+
+        gantt_data = []  # List to store Gantt chart data
 
         while True:
             if (all(process[2] == 0 for process in processes.values())):
@@ -246,7 +332,8 @@ class ProcessScheduler:
                     waiting_queue[process] = value
 
             # waiting sorted according to burst time
-            waiting_queue = dict(sorted(waiting_queue.items(), key=lambda x: x[1][2]))
+            waiting_queue = dict(
+                sorted(waiting_queue.items(), key=lambda x: x[1][2]))
             copied_waiting_queue = waiting_queue.copy()
 
             for waiting_process, value in copied_waiting_queue.items():
@@ -269,8 +356,13 @@ class ProcessScheduler:
                         self.output.update_idletasks()
                     time.sleep(0.3)
                     self.output.insert(END, "\n")
-                    self.output.insert(END, "{}: completed. Time: 1s\n".format(waiting_process))
+                    self.output.insert(
+                        END, "{}: completed. Time: 1s\n".format(waiting_process))
                     self.output.update_idletasks()
+
+                    # Store Gantt chart data for the current process
+                    gantt_data.append(
+                        (waiting_process, current_time, 1))
 
                     # current time increamented
                     current_time += 1
@@ -302,7 +394,8 @@ class ProcessScheduler:
 
                             # printing proocess
                             keys_of_item_with_CPU = process_with_CPU.keys()
-                            keys_of_item_with_CPU_list = list(keys_of_item_with_CPU)
+                            keys_of_item_with_CPU_list = list(
+                                keys_of_item_with_CPU)
                             key_of_item_with_CPU = keys_of_item_with_CPU_list[0]
 
                             for i in range(10):
@@ -310,8 +403,13 @@ class ProcessScheduler:
                                 self.output.update_idletasks()
                             time.sleep(0.3)
                             self.output.insert(END, "\n")
-                            self.output.insert(END, "{}: completed. Time: 1s\n".format(waiting_process))
+                            self.output.insert(
+                                END, "{}: completed. Time: 1s\n".format(waiting_process))
                             self.output.update_idletasks()
+
+                            # Store Gantt chart data for the current process
+                            gantt_data.append(
+                                (waiting_process, current_time, 1))
 
                             # current time increamented
                             current_time += 1
@@ -325,7 +423,8 @@ class ProcessScheduler:
 
                             # printing proocess
                             keys_of_item_with_CPU = process_with_CPU.keys()
-                            keys_of_item_with_CPU_list = list(keys_of_item_with_CPU)
+                            keys_of_item_with_CPU_list = list(
+                                keys_of_item_with_CPU)
                             key_of_item_with_CPU = keys_of_item_with_CPU_list[0]
 
                             for i in range(10):
@@ -333,9 +432,13 @@ class ProcessScheduler:
                                 self.output.update_idletasks()
                             time.sleep(0.3)
                             self.output.insert(END, "\n")
-                            self.output.insert(END, "{}: completed. Time: 1s\n".format(key_of_item_with_CPU))
+                            self.output.insert(
+                                END, "{}: completed. Time: 1s\n".format(key_of_item_with_CPU))
                             self.output.update_idletasks()
 
+                            # Store Gantt chart data for the current process
+                            gantt_data.append(
+                                (key_of_item_with_CPU, current_time, 1))
                             # current time increamented
                             current_time += 1
                             break
@@ -345,7 +448,8 @@ class ProcessScheduler:
 
                             # printing proocess
                             keys_of_item_with_CPU = process_with_CPU.keys()
-                            keys_of_item_with_CPU_list = list(keys_of_item_with_CPU)
+                            keys_of_item_with_CPU_list = list(
+                                keys_of_item_with_CPU)
                             key_of_item_with_CPU = keys_of_item_with_CPU_list[0]
 
                             for i in range(10):
@@ -353,8 +457,13 @@ class ProcessScheduler:
                                 self.output.update_idletasks()
                             time.sleep(0.3)
                             self.output.insert(END, "\n")
-                            self.output.insert(END, "{}: completed. Time: 1s\n".format(key_of_item_with_CPU))
+                            self.output.insert(
+                                END, "{}: completed. Time: 1s\n".format(key_of_item_with_CPU))
                             self.output.update_idletasks()
+
+                            # Store Gantt chart data for the current process
+                            gantt_data.append(
+                                (key_of_item_with_CPU, current_time, 1))
 
                             # current time increamented
                             current_time += 1
@@ -379,7 +488,8 @@ class ProcessScheduler:
 
                         # printing proocess
                         keys_of_item_with_CPU = process_with_CPU.keys()
-                        keys_of_item_with_CPU_list = list(keys_of_item_with_CPU)
+                        keys_of_item_with_CPU_list = list(
+                            keys_of_item_with_CPU)
                         key_of_item_with_CPU = keys_of_item_with_CPU_list[0]
 
                         for i in range(10):
@@ -387,8 +497,13 @@ class ProcessScheduler:
                             self.output.update_idletasks()
                         time.sleep(0.3)
                         self.output.insert(END, "\n")
-                        self.output.insert(END, "{}: completed. Time: 1s\n".format(key_of_item_with_CPU))
+                        self.output.insert(
+                            END, "{}: completed. Time: 1s\n".format(key_of_item_with_CPU))
                         self.output.update_idletasks()
+
+                        # Store Gantt chart data for the current process
+                        gantt_data.append(
+                            (key_of_item_with_CPU, current_time, 1))
 
                         # current time increamented
                         current_time += 1
@@ -403,11 +518,30 @@ class ProcessScheduler:
         self.output.insert(END, "Average Waiting Time: {}\n".format(avg_wait))
         self.output.update_idletasks()
 
+        # Create the Gantt chart
+        colors = ['tab:blue', 'tab:orange',
+                  'tab:green', 'tab:red', 'tab:purple']
+
+        fig, ax = plt.subplots()
+        for i, (process, start, duration) in enumerate(gantt_data):
+            # Cycle through colors using modulo operator
+            color = colors[i % len(colors)]
+            ax.broken_barh([(start, duration)], (10, 9), facecolors=(color))
+            ax.text(start + duration/2, 15, process, ha='center', va='center')
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Process')
+        ax.set_title('SRTF Scheduling')
+        ax.set_ylim(5, 25)
+        ax.grid(True)
+
+        plt.show()
+
     # Priority Scheduling Algorithm
     def ps(self):
         self.output.insert(END, "PS Scheduling:\n")
         dict1 = self.processes
-        dict1 = dict(sorted(dict1.items(), key=lambda x: x[1][0]))  
+        dict1 = dict(sorted(dict1.items(), key=lambda x: x[1][0]))
         for i in range(5):
             time.sleep(0.3)
             self.output.insert(END, ".\n")
@@ -420,7 +554,7 @@ class ProcessScheduler:
             wt[i] = prev_end_time
             total_wt += wt[i]
             prev_end_time += dict1[i][2]
-            
+
             print(f"Process {i}  runs from {wt[i]} to {prev_end_time}")
 
         # Calculate and print Average Wait Time
@@ -433,17 +567,16 @@ class ProcessScheduler:
     def ps_rr(self, quantum):
         self.output.insert(END, "PS with RR Scheduling:\n")
         dict2 = self.processes
-        dict2 = dict(sorted(dict2.items(), key=lambda x: x[1][0])) 
+        dict2 = dict(sorted(dict2.items(), key=lambda x: x[1][0]))
         for i in range(5):
             time.sleep(0.3)
             self.output.insert(END, ".\n")
             self.output.update_idletasks()
         print(dict2)
-        waits = {key: 0 for key in dict2.keys()} #total waiting time
-        prev_end = {key: 0 for key in dict2.keys()} #previous waiting time
+        waits = {key: 0 for key in dict2.keys()}  # total waiting time
+        prev_end = {key: 0 for key in dict2.keys()}  # previous waiting time
         tq = quantum
         print("Time quantum = ", tq)
-
 
         cur_t = 0
         dict1 = {}
@@ -453,18 +586,19 @@ class ProcessScheduler:
                 dict1[priority] = {}
             dict_temp = dict1[priority]
             dict_temp[process] = value[2]
-        
+
         for i in dict1:
             cur_prio = dict1[i]
 
-            while any(value > 0 for value in cur_prio.values()): # checking if priority has completed RR
+            # checking if priority has completed RR
+            while any(value > 0 for value in cur_prio.values()):
 
-                for j in cur_prio:     #j = process, curprio[j] = bt
+                for j in cur_prio:  # j = process, curprio[j] = bt
                     if (cur_prio[j] > 0):
                         st = cur_t
                         waits[j] += cur_t - prev_end[j]
 
-                        if (cur_prio[j] >= tq):    #comparing bt with tq
+                        if (cur_prio[j] >= tq):  # comparing bt with tq
                             cur_prio[j] -= tq
                             cur_t += tq
                         else:
@@ -476,7 +610,7 @@ class ProcessScheduler:
                     print(f"Process {j}  runs from {st} to {cur_t}")
 
         # Calculate and print Average Wait Time
-        avg_wait = sum(waits.values())  / self.count_process
+        avg_wait = sum(waits.values()) / self.count_process
         time.sleep(0.3)
         self.output.insert(END, "Average Waiting Time: {}\n".format(avg_wait))
         self.output.update_idletasks()
