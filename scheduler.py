@@ -328,8 +328,11 @@ class ProcessScheduler:
 
                 # processes added to waiting queue, if it is equal to current time
                 if (current_time == value[1]):
-
                     waiting_queue[process] = value
+
+            if (bool(waiting_queue) == False):
+                current_time += 1
+                continue
 
             # waiting sorted according to burst time
             waiting_queue = dict(
@@ -348,7 +351,8 @@ class ProcessScheduler:
 
                     # printing proocess
                     keys_of_item_with_CPU = process_with_CPU.keys()
-                    keys_of_item_with_CPU_list = list(keys_of_item_with_CPU)
+                    keys_of_item_with_CPU_list = list(
+                        keys_of_item_with_CPU)
                     key_of_item_with_CPU = keys_of_item_with_CPU_list[0]
 
                     for i in range(10):
@@ -515,7 +519,8 @@ class ProcessScheduler:
         # Calculate and print Average Wait Time
         avg_wait = current_time / self.count_process
         time.sleep(0.3)
-        self.output.insert(END, "Average Waiting Time: {}\n".format(avg_wait))
+        self.output.insert(
+            END, "Average Waiting Time: {}\n".format(avg_wait))
         self.output.update_idletasks()
 
         # Create the Gantt chart
@@ -526,8 +531,10 @@ class ProcessScheduler:
         for i, (process, start, duration) in enumerate(gantt_data):
             # Cycle through colors using modulo operator
             color = colors[i % len(colors)]
-            ax.broken_barh([(start, duration)], (10, 9), facecolors=(color))
-            ax.text(start + duration/2, 15, process, ha='center', va='center')
+            ax.broken_barh([(start, duration)],
+                           (10, 9), facecolors=(color))
+            ax.text(start + duration/2, 15, process,
+                    ha='center', va='center')
 
         ax.set_xlabel('Time')
         ax.set_ylabel('Process')
