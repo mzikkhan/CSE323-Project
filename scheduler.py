@@ -548,6 +548,7 @@ class ProcessScheduler:
     def ps(self):
         self.output.insert(END, "PS Scheduling:\n")
         dict1 = self.processes
+        gantt_data = []  # List to store Gantt chart data
         dict1 = dict(sorted(dict1.items(), key=lambda x: x[1][0]))
         for i in range(5):
             time.sleep(0.3)
@@ -563,6 +564,7 @@ class ProcessScheduler:
             prev_end_time += dict1[i][2]
 
             print(f"Process {i}  runs from {wt[i]} to {prev_end_time}")
+            gantt_data.append((i, wt[i], prev_end_time))
 
         # Calculate and print Average Wait Time
         avg_wait = total_wt / self.count_process
@@ -570,16 +572,55 @@ class ProcessScheduler:
         self.output.insert(END, "Average Waiting Time: {}\n".format(avg_wait))
         self.output.update_idletasks()
 
+
+        # Create the Gantt chart
+       
+        colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple']
+        fig, ax = plt.subplots()
+
+        # Calculate the number of processes
+        num_processes = len(gantt_data)
+
+        # Set the y-coordinates for the processes
+        y_coords = 1
+
+        # Create a colormap with a unique color for each process
+        cmap = plt.get_cmap('tab20')
+        colors = [cmap(i) for i in range(num_processes)]
+
+        for i, (item, start, duration) in enumerate(gantt_data):
+            color = colors[i]
+            ax.barh(y_coords+0.5, duration-start, left=start, height=0.8, color=color)  # Adjusted the width of the bar
+            ax.text(start + (duration-start)/2, y_coords+0.5, item, ha='center', va='center', color='white')
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Process')
+        ax.set_title('Priority Scheduling')
+        ax.set_xlim(0, max([x[2] for x in gantt_data]))  # Adjust the x-axis limit
+        ax.set_ylim(0, 5)  # Adjust the y-axis limits
+        ax.set_yticks([y_coords+0.5])  # Set y-tick position in the middle
+        ax.set_yticklabels([''])  # Remove y-tick label
+        ax.grid(True)
+
+        plt.show()
+
+
+
+
+
+        
+
     # Priority Scheduling with Round Robin Algorithm
     def ps_rr(self, quantum):
         self.output.insert(END, "PS with RR Scheduling:\n")
         dict2 = self.processes
+        gantt_data = []  # List to store Gantt chart data
         dict2 = dict(sorted(dict2.items(), key=lambda x: x[1][0]))
         for i in range(5):
             time.sleep(0.3)
             self.output.insert(END, ".\n")
             self.output.update_idletasks()
-        print(dict2)
+        #print(dict2)
         waits = {key: 0 for key in dict2.keys()}  # total waiting time
         prev_end = {key: 0 for key in dict2.keys()}  # previous waiting time
         tq = quantum
@@ -614,10 +655,44 @@ class ProcessScheduler:
 
                         prev_end[j] = cur_t
 
-                    print(f"Process {j}  runs from {st} to {cur_t}")
+                        print(f"Process {j}  runs from {st} to {cur_t}")
+                        gantt_data.append((j, st, cur_t))
 
         # Calculate and print Average Wait Time
         avg_wait = sum(waits.values()) / self.count_process
+        self.output.insert(END, "Total Wait time: {}\n".format(sum(waits.values())))
+        self.output.insert(END, "Process count: {}\n".format(self.count_process))
         time.sleep(0.3)
         self.output.insert(END, "Average Waiting Time: {}\n".format(avg_wait))
         self.output.update_idletasks()
+
+        # Create the Gantt chart
+        
+        colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple']
+        fig, ax = plt.subplots()
+
+        # Calculate the total run time
+        total_run_time = max(gantt_data, key=lambda x: x[2])[2]
+
+        for i, (process, start, duration) in enumerate(gantt_data):
+            # Cycle through colors using modulo operator
+            color = colors[i % len(colors)]
+            ax.broken_barh([(start, duration-start)], (1, 3), facecolors=color)  # Adjusted the height and y-position of the bars
+            ax.text(start + (duration-start)/2, 2.5, process, ha='center', va='center')
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Process')
+        ax.set_title('Priority Scheduling with RR')
+        ax.set_xlim(0, total_run_time)  # Set the x-axis limits based on the total run time
+        ax.set_ylim(0, 5)  # Adjust the y-axis limits
+        ax.set_yticks([2])  # Set y-tick position in the middle
+        ax.set_yticklabels([''])  # Remove y-tick label
+        ax.grid(True)
+
+        plt.show()
+
+
+
+
+    
+
